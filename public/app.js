@@ -1,338 +1,365 @@
 /**
- * EduGrade Frontend Application Logic
- * DevOps Practical Demo - Connects to Express REST API & Health Services
+ * EduGrade Student Result & Grade Converter
+ * Interactive Client Logic with DevOps Telemetry Integration
  */
 
-// Default Presets
-const PRESET_ENGINEERING = [
-  { name: 'DevOps & Cloud Engineering', marks: 88, maxMarks: 100, credits: 4 },
-  { name: 'Data Structures & Algorithms', marks: 82, maxMarks: 100, credits: 4 },
-  { name: 'Operating Systems', marks: 76, maxMarks: 100, credits: 3 },
-  { name: 'Computer Networks', marks: 85, maxMarks: 100, credits: 3 },
-  { name: 'Database Management Systems', marks: 91, maxMarks: 100, credits: 3 },
-];
+const $ = id => document.getElementById(id);
+let lastResult = null;
+const defaults = ['Software Engineering', 'Machine Learning', 'Cloud Computing', 'Data Mining', 'Java Programming'];
 
-const PRESET_HIGH_SCHOOL = [
-  { name: 'Mathematics', marks: 95, maxMarks: 100, credits: 1 },
-  { name: 'Physics', marks: 84, maxMarks: 100, credits: 1 },
-  { name: 'Chemistry', marks: 79, maxMarks: 100, credits: 1 },
-  { name: 'Computer Science', marks: 92, maxMarks: 100, credits: 1 },
-  { name: 'English Literature', marks: 80, maxMarks: 100, credits: 1 },
-  { name: 'Environmental Studies', marks: 87, maxMarks: 100, credits: 1 },
-];
-
-// DOM Elements
-const subjectsBody = document.getElementById('subjectsBody');
-const btnAddSubject = document.getElementById('btnAddSubject');
-const marksForm = document.getElementById('marksForm');
-const btnCalculate = document.getElementById('btnCalculate');
-const btnPrintReport = document.getElementById('btnPrintReport');
-const resultPlaceholder = document.getElementById('resultPlaceholder');
-const resultContent = document.getElementById('resultContent');
-
-// Status & Version Elements
-const containerStatusBadge = document.getElementById('containerStatusBadge');
-const statusLabelText = document.getElementById('statusLabelText');
-const versionBadge = document.getElementById('versionBadge');
-
-// Preset Buttons
-const presetEngineering = document.getElementById('presetEngineering');
-const presetHighSchool = document.getElementById('presetHighSchool');
-const presetSampleData = document.getElementById('presetSampleData');
-const presetClear = document.getElementById('presetClear');
-
-// Modal Elements
-const devOpsModal = document.getElementById('devOpsModal');
-const btnDevOpsModal = document.getElementById('btnDevOpsModal');
-const btnCloseModal = document.getElementById('btnCloseModal');
-const diagStatus = document.getElementById('diagStatus');
-const diagVersion = document.getElementById('diagVersion');
-const diagEnv = document.getElementById('diagEnv');
-const diagHost = document.getElementById('diagHost');
-const diagUptime = document.getElementById('diagUptime');
-const diagNode = document.getElementById('diagNode');
-
-// UGC Scale Toggle
-const scaleToggle = document.getElementById('scaleToggle');
-const scaleBody = document.getElementById('scaleBody');
-
-// Initialize
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  loadSubjectRows(PRESET_ENGINEERING);
-  checkServiceHealth();
-  setInterval(checkServiceHealth, 12000); // Poll health every 12 seconds
+  engineeringTemplate();
+  renderRecords();
+  updateStats();
+  checkBackendHealth();
 });
 
-// Event Listeners
-btnAddSubject.addEventListener('click', () => addSubjectRow());
-presetEngineering.addEventListener('click', () => loadSubjectRows(PRESET_ENGINEERING));
-presetHighSchool.addEventListener('click', () => loadSubjectRows(PRESET_HIGH_SCHOOL));
-presetSampleData.addEventListener('click', () => loadSubjectRows(PRESET_ENGINEERING));
-presetClear.addEventListener('click', () => clearAllRows());
-
-btnPrintReport.addEventListener('click', () => {
-  window.print();
-});
-
-// UGC Scale toggle
-scaleToggle.addEventListener('click', () => {
-  scaleToggle.classList.toggle('open');
-  scaleBody.classList.toggle('open');
-});
-
-// DevOps Modal controls
-btnDevOpsModal.addEventListener('click', () => {
-  devOpsModal.classList.add('open');
-  checkServiceHealth();
-});
-btnCloseModal.addEventListener('click', () => devOpsModal.classList.remove('open'));
-devOpsModal.addEventListener('click', (e) => {
-  if (e.target === devOpsModal) devOpsModal.classList.remove('open');
-});
-
-/**
- * Loads a set of subjects into the input table
- */
-function loadSubjectRows(subjectsList) {
-  subjectsBody.innerHTML = '';
-  subjectsList.forEach((sub) => addSubjectRow(sub.name, sub.marks, sub.maxMarks, sub.credits));
-}
-
-/**
- * Clears all subject rows and leaves one empty row
- */
-function clearAllRows() {
-  subjectsBody.innerHTML = '';
-  addSubjectRow('', '', 100, 3);
-  resetResults();
-}
-
-/**
- * Adds a new subject row to the table
- */
-function addSubjectRow(name = '', marks = '', maxMarks = 100, credits = 3) {
-  const row = document.createElement('tr');
-  row.className = 'subject-row';
-  row.innerHTML = `
-    <td>
-      <input type="text" class="table-input sub-name" placeholder="Subject Name" value="${escapeHtml(name)}" required>
-    </td>
-    <td>
-      <input type="number" class="table-input sub-marks" placeholder="0" min="0" max="${maxMarks}" value="${marks}" required>
-    </td>
-    <td>
-      <input type="number" class="table-input sub-max" placeholder="100" min="1" value="${maxMarks}" required>
-    </td>
-    <td>
-      <input type="number" class="table-input sub-credits" placeholder="3" min="1" max="10" value="${credits}" required>
-    </td>
-    <td>
-      <button type="button" class="btn-remove-row" title="Remove Subject">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-        </svg>
-      </button>
-    </td>
+function addSubject(data = {}) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="row-num"></td>
+    <td><input class="s-name" placeholder="Subject name" value="${escapeHtml(data.name || '')}"></td>
+    <td><input class="s-code" placeholder="Code" value="${escapeHtml(data.code || '')}"></td>
+    <td><input class="s-marks" type="number" min="0" placeholder="0" value="${data.marks ?? ''}"></td>
+    <td><input class="s-max" type="number" min="1" placeholder="100" value="${data.max ?? 100}"></td>
+    <td><input class="s-credit" type="number" min="1" max="10" placeholder="4" value="${data.credit ?? 4}"></td>
+    <td><button class="remove" title="Remove" onclick="removeSubject(this)">×</button></td>
   `;
-
-  // Attach delete button handler
-  row.querySelector('.btn-remove-row').addEventListener('click', () => {
-    if (subjectsBody.querySelectorAll('tr').length > 1) {
-      row.remove();
-    } else {
-      alert('At least one subject is required.');
-    }
-  });
-
-  // Dynamically update max attribute of marks when maxMarks changes
-  const marksInput = row.querySelector('.sub-marks');
-  const maxInput = row.querySelector('.sub-max');
-  maxInput.addEventListener('input', () => {
-    marksInput.max = maxInput.value || 100;
-  });
-
-  subjectsBody.appendChild(row);
+  $('subjectRows').appendChild(tr);
+  renumber();
 }
 
-/**
- * Handle Form Submission & Result Calculation
- */
-marksForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+function removeSubject(btn) {
+  if ($('subjectRows').children.length <= 1) {
+    return showError('At least one subject is required.');
+  }
+  btn.closest('tr').remove();
+  renumber();
+}
 
-  const rows = subjectsBody.querySelectorAll('.subject-row');
-  const subjects = [];
+function renumber() {
+  [...$('subjectRows').children].forEach((r, i) => {
+    r.querySelector('.row-num').textContent = String(i + 1).padStart(2, '0');
+  });
+}
 
-  for (const row of rows) {
-    const name = row.querySelector('.sub-name').value.trim();
-    const marks = parseFloat(row.querySelector('.sub-marks').value);
-    const maxMarks = parseFloat(row.querySelector('.sub-max').value);
-    const credits = parseFloat(row.querySelector('.sub-credits').value);
+function setSubjects(items) {
+  $('subjectRows').innerHTML = '';
+  items.forEach(addSubject);
+}
 
-    if (!name) {
-      alert('Please provide a name for every subject.');
-      return;
-    }
-    if (isNaN(marks) || marks < 0 || marks > maxMarks) {
-      alert(`Invalid marks for "${name}". Must be between 0 and ${maxMarks}.`);
-      return;
-    }
+function engineeringTemplate() {
+  setSubjects(defaults.map((name, i) => ({
+    name,
+    code: `MCA${101 + i}`,
+    max: 100,
+    credit: 4
+  })));
+  toast('Engineering template loaded');
+}
 
-    subjects.push({ name, marks, maxMarks, credits });
+function schoolTemplate() {
+  setSubjects(['English', 'Mathematics', 'Science', 'Social Science', 'Kannada', 'Computer Science'].map((name, i) => ({
+    name,
+    code: `SUB${101 + i}`,
+    max: 100,
+    credit: 4
+  })));
+  toast('High school template loaded');
+}
+
+function loadSample() {
+  $('name').value = 'Pavan Pujar';
+  $('roll').value = 'P02AS25S126035';
+  $('course').value = 'MCA';
+  $('semester').value = 'Semester 2';
+  $('year').value = '2025–2026';
+  $('institution').value = "KLE Society's P. C. Jabin Science College";
+  setSubjects(defaults.map((name, i) => ({
+    name,
+    code: `MCA${201 + i}`,
+    marks: [86, 78, 91, 74, 83][i],
+    max: 100,
+    credit: [4, 4, 3, 4, 4][i]
+  })));
+  location.hash = 'formSection';
+  toast('Sample student loaded');
+}
+
+function clearAll() {
+  $('name').value = '';
+  $('roll').value = '';
+  $('course').value = '';
+  $('report').style.display = 'none';
+  engineeringTemplate();
+  $('message').className = 'message';
+}
+
+function grade(p) {
+  if (p >= 90) return ['O', 10, 'Outstanding'];
+  if (p >= 80) return ['A+', 9, 'Excellent'];
+  if (p >= 70) return ['A', 8, 'Very Good'];
+  if (p >= 60) return ['B+', 7, 'Good'];
+  if (p >= 55) return ['B', 6, 'Above Average'];
+  if (p >= 50) return ['C', 5, 'Average'];
+  if (p >= 40) return ['P', 4, 'Pass'];
+  return ['F', 0, 'Fail'];
+}
+
+function showError(text) {
+  $('message').textContent = text;
+  $('message').className = 'message error';
+  $('message').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function calculate() {
+  const name = $('name').value.trim();
+  const roll = $('roll').value.trim();
+
+  if (!name || !roll) {
+    return showError('Please enter the student name and registration number.');
   }
 
-  const studentInfo = {
-    name: document.getElementById('studentName').value,
-    rollNo: document.getElementById('studentRoll').value,
-    semester: document.getElementById('studentSemester').value,
-    academicYear: document.getElementById('academicYear').value,
+  const subjects = [];
+  for (const row of $('subjectRows').children) {
+    const subject = {
+      name: row.querySelector('.s-name').value.trim(),
+      code: row.querySelector('.s-code').value.trim(),
+      marks: Number(row.querySelector('.s-marks').value),
+      max: Number(row.querySelector('.s-max').value),
+      credit: Number(row.querySelector('.s-credit').value)
+    };
+
+    if (!subject.name || !Number.isFinite(subject.marks) || subject.max <= 0 || subject.credit <= 0) {
+      return showError('Complete all subject fields with valid positive values.');
+    }
+    if (subject.marks < 0 || subject.marks > subject.max) {
+      return showError(`Marks for ${subject.name} must be between 0 and ${subject.max}.`);
+    }
+
+    subject.percent = (subject.marks / subject.max) * 100;
+    [subject.grade, subject.point, subject.remark] = grade(subject.percent);
+    subject.status = subject.percent >= 40 ? 'PASS' : 'FAIL';
+    subjects.push(subject);
+  }
+
+  const obtained = subjects.reduce((s, x) => s + x.marks, 0);
+  const maximum = subjects.reduce((s, x) => s + x.max, 0);
+  const percentage = (obtained / maximum) * 100;
+  const totalCredits = subjects.reduce((s, x) => s + x.credit, 0);
+  const sgpa = totalCredits > 0 ? (subjects.reduce((s, x) => s + x.point * x.credit, 0) / totalCredits) : 0;
+  const passed = subjects.filter(x => x.status === 'PASS').length;
+  const result = passed === subjects.length ? 'PASS' : 'FAIL';
+  const [finalGrade, , remark] = grade(percentage);
+
+  let classification = percentage >= 75 ? 'Distinction' :
+                       percentage >= 60 ? 'First Class' :
+                       percentage >= 50 ? 'Second Class' :
+                       percentage >= 40 ? 'Pass Class' : 'Fail';
+
+  if (result === 'FAIL') {
+    classification = 'Result Withheld — Failed Subject';
+  }
+
+  lastResult = {
+    id: Date.now(),
+    name,
+    roll,
+    course: $('course').value.trim() || '—',
+    semester: $('semester').value,
+    year: $('year').value,
+    institution: $('institution').value,
+    subjects,
+    obtained,
+    maximum,
+    percentage,
+    sgpa,
+    passed,
+    result,
+    finalGrade,
+    classification,
+    remark
   };
 
-  btnCalculate.disabled = true;
-  btnCalculate.innerHTML = `Calculating...`;
+  renderReport();
+  $('message').className = 'message';
+  $('report').style.display = 'block';
+  $('report').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // Telemetry: notify backend REST API so server logs request and updates /metrics
+  syncEvaluationTelemetry(lastResult);
+}
+
+function renderReport() {
+  const r = lastResult;
+  $('initials').textContent = r.name.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase();
+  $('reportName').textContent = r.name;
+  $('reportRoll').textContent = r.roll;
+  $('reportCourse').textContent = r.course;
+  $('reportSem').textContent = r.semester;
+  $('reportInstitution').textContent = r.institution;
+  $('reportYear').textContent = r.year;
+  $('percentage').textContent = r.percentage.toFixed(1) + '%';
+  $('scoreRing').style.background = `conic-gradient(${r.result === 'PASS' ? '#2563eb' : '#ef4444'} ${r.percentage * 3.6}deg, #e8edf4 0)`;
+  $('totalMarks').textContent = `${r.obtained} / ${r.maximum}`;
+  $('sgpa').textContent = r.sgpa.toFixed(2);
+  $('finalGrade').textContent = r.result === 'PASS' ? r.finalGrade : 'F';
+  $('passedCount').textContent = `${r.passed} / ${r.subjects.length}`;
+  $('classification').textContent = r.classification;
+
+  const pill = $('resultPill');
+  pill.textContent = r.result;
+  pill.className = 'result-pill ' + (r.result === 'PASS' ? 'pass' : 'fail');
+
+  $('resultRows').innerHTML = r.subjects.map(s => `
+    <tr>
+      <td><strong>${escapeHtml(s.name)}</strong></td>
+      <td>${escapeHtml(s.code || '—')}</td>
+      <td>${s.marks} / ${s.max}</td>
+      <td>${s.percent.toFixed(1)}%</td>
+      <td>${s.credit}</td>
+      <td><strong>${s.grade}</strong></td>
+      <td>${s.point}</td>
+      <td><span class="result-pill ${s.status === 'PASS' ? 'pass' : 'fail'}" style="padding:5px 8px">${s.status}</span></td>
+    </tr>
+  `).join('');
+
+  $('performanceText').textContent = r.result === 'PASS'
+    ? `${r.remark} performance. ${r.name} has successfully passed all ${r.subjects.length} subjects with an overall percentage of ${r.percentage.toFixed(1)}%.`
+    : `${r.name} must clear ${r.subjects.length - r.passed} failed subject(s). Minimum 40% is required in every subject.`;
+}
+
+function records() {
   try {
-    const response = await fetch('/api/calculate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subjects, studentInfo }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || 'Evaluation calculation failed');
-    }
-
-    renderResults(data.data);
-  } catch (error) {
-    console.error('Calculation API Error:', error);
-    alert(`Error: ${error.message}`);
-  } finally {
-    btnCalculate.disabled = false;
-    btnCalculate.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-      </svg>
-      Calculate Results
-    `;
+    return JSON.parse(localStorage.getItem('edugrade-records')) || [];
+  } catch {
+    return [];
   }
-});
+}
 
-/**
- * Renders the returned result data into the DOM
- */
-function renderResults(result) {
-  resultPlaceholder.classList.add('hidden');
-  resultContent.classList.remove('hidden');
-  btnPrintReport.disabled = false;
-
-  const { summary, subjects } = result;
-
-  // Banner
-  const outcomeBanner = document.getElementById('outcomeBanner');
-  const outcomeStatus = document.getElementById('outcomeStatus');
-  const outcomeDivision = document.getElementById('outcomeDivision');
-  const outcomeGradePill = document.getElementById('outcomeGradePill');
-  const outcomeIcon = document.getElementById('outcomeIcon');
-
-  if (summary.resultStatus === 'PASSED') {
-    outcomeBanner.classList.remove('fail');
-    outcomeStatus.textContent = 'PASSED';
-    outcomeIcon.textContent = '✓';
-    outcomeDivision.textContent = summary.division;
+function saveRecord() {
+  if (!lastResult) return;
+  let list = records();
+  const index = list.findIndex(x => x.roll.toLowerCase() === lastResult.roll.toLowerCase());
+  if (index >= 0) {
+    list[index] = lastResult;
   } else {
-    outcomeBanner.classList.add('fail');
-    outcomeStatus.textContent = 'FAILED';
-    outcomeIcon.textContent = '✗';
-    outcomeDivision.textContent = `Failed in ${summary.failedSubjectsCount} subject(s)`;
+    list.unshift(lastResult);
   }
+  localStorage.setItem('edugrade-records', JSON.stringify(list));
+  renderRecords();
+  updateStats();
+  toast(index >= 0 ? 'Record updated' : 'Student result saved');
+}
 
-  outcomeGradePill.textContent = `${summary.grade} (${summary.gpa})`;
+function deleteRecord(id) {
+  if (!confirm('Delete this student record?')) return;
+  localStorage.setItem('edugrade-records', JSON.stringify(records().filter(x => x.id !== id)));
+  renderRecords();
+  updateStats();
+  toast('Record deleted');
+}
 
-  // Key Metrics
-  document.getElementById('valPercentage').textContent = `${summary.overallPercentage}%`;
-  document.getElementById('barPercentage').style.width = `${Math.min(100, Math.max(0, summary.overallPercentage))}%`;
-  document.getElementById('valGpa').textContent = summary.gpa.toFixed(2);
-  document.getElementById('valTotalMarks').textContent = `${summary.totalMarksObtained} / ${summary.totalMaxMarks}`;
-  document.getElementById('valSubjectCount').textContent = `${summary.totalSubjects} Subjects`;
-  document.getElementById('valGradeLabel').textContent = summary.gradeLabel;
-  document.getElementById('valFailedCount').textContent = summary.failedSubjectsCount === 0 ? '0 Backlogs' : `${summary.failedSubjectsCount} Backlogs`;
+function viewRecord(id) {
+  lastResult = records().find(x => x.id === id);
+  if (!lastResult) return;
+  renderReport();
+  $('report').style.display = 'block';
+  $('report').scrollIntoView({ behavior: 'smooth' });
+}
 
-  // Subject Table
-  const reportBody = document.getElementById('reportTableBody');
-  reportBody.innerHTML = '';
-  subjects.forEach((sub) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${escapeHtml(sub.name)}</strong></td>
-      <td>${sub.marks} / ${sub.maxMarks}</td>
-      <td>${sub.percentage}%</td>
-      <td><strong>${sub.grade}</strong></td>
-      <td>${sub.gradePoint}</td>
-      <td>${sub.credits}</td>
+function renderRecords() {
+  const q = $('search').value.toLowerCase();
+  const f = $('filter').value;
+  const list = records().filter(x => (x.name.toLowerCase().includes(q) || x.roll.toLowerCase().includes(q)) && (f === 'all' || x.result === f));
+
+  $('recordsRows').innerHTML = list.map(x => `
+    <tr>
+      <td><strong>${escapeHtml(x.name)}</strong></td>
+      <td>${escapeHtml(x.roll)}</td>
+      <td>${escapeHtml(x.course)}</td>
+      <td>${escapeHtml(x.semester)}</td>
+      <td>${x.percentage.toFixed(1)}%</td>
+      <td>${x.sgpa.toFixed(2)}</td>
+      <td>${x.result === 'PASS' ? x.finalGrade : 'F'}</td>
+      <td><span class="result-pill ${x.result === 'PASS' ? 'pass' : 'fail'}" style="padding:5px 8px">${x.result}</span></td>
       <td>
-        <span class="${sub.status === 'PASS' ? 'badge-pass' : 'badge-fail'}">${sub.status}</span>
+        <button class="btn btn-soft" style="padding:7px 10px" onclick="viewRecord(${x.id})">View</button>
+        <button class="remove" onclick="deleteRecord(${x.id})">×</button>
       </td>
-    `;
-    reportBody.appendChild(tr);
-  });
+    </tr>
+  `).join('');
 
-  // Highlights
-  document.getElementById('hlTopSubject').textContent = summary.highestScore.subject;
-  document.getElementById('hlTopScore').textContent = `${summary.highestScore.marks} marks (${summary.highestScore.percentage}%)`;
-  document.getElementById('hlLowSubject').textContent = summary.lowestScore.subject;
-  document.getElementById('hlLowScore').textContent = `${summary.lowestScore.marks} marks (${summary.lowestScore.percentage}%)`;
+  $('empty').style.display = list.length ? 'none' : 'block';
 }
 
-/**
- * Resets the results view back to placeholder
- */
-function resetResults() {
-  resultPlaceholder.classList.remove('hidden');
-  resultContent.classList.add('hidden');
-  btnPrintReport.disabled = true;
+function updateStats() {
+  const list = records();
+  const passed = list.filter(x => x.result === 'PASS').length;
+  const avg = list.length ? list.reduce((s, x) => s + x.sgpa, 0) / list.length : 0;
+  $('totalStudents').textContent = list.length;
+  $('passRate').textContent = (list.length ? (passed / list.length * 100) : 0).toFixed(0) + '%';
+  $('avgSgpa').textContent = avg.toFixed(1);
+  $('reportCount').textContent = list.length;
 }
 
-/**
- * Checks service health & updates UI
- */
-async function checkServiceHealth() {
-  try {
-    const res = await fetch('/health');
-    if (!res.ok) throw new Error('Health check returned non-200');
-
-    const data = await res.json();
-    const dot = containerStatusBadge.querySelector('.status-dot');
-    dot.className = 'status-dot healthy';
-    statusLabelText.textContent = `Online (${data.status})`;
-
-    versionBadge.textContent = `v${data.version}`;
-
-    // Diagnostics modal
-    diagStatus.textContent = data.status;
-    diagVersion.textContent = `v${data.version}`;
-    diagEnv.textContent = data.environment;
-    diagHost.textContent = data.host;
-    diagUptime.textContent = `${data.uptimeSeconds}s`;
-    diagNode.textContent = data.system.nodeVersion;
-  } catch (err) {
-    const dot = containerStatusBadge.querySelector('.status-dot');
-    dot.className = 'status-dot unhealthy';
-    statusLabelText.textContent = 'Offline';
-    diagStatus.textContent = 'DOWN';
-  }
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/[&<>'"]/g, (tag) => ({
+  return String(str).replace(/[&<>'"]/g, tag => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     "'": '&#39;',
     '"': '&quot;',
   }[tag] || tag));
+}
+
+// DevOps Server Telemetry
+async function checkBackendHealth() {
+  try {
+    const res = await fetch('/health');
+    if (res.ok) {
+      const data = await res.json();
+      const statusText = $('statusText');
+      if (statusText) {
+        statusText.textContent = `Online · v${data.version || '1.0.0'}`;
+      }
+    }
+  } catch (e) {
+    // Graceful fallback for standalone static preview
+  }
+}
+
+async function syncEvaluationTelemetry(result) {
+  try {
+    await fetch('/api/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentInfo: {
+          name: result.name,
+          rollNo: result.roll,
+          course: result.course,
+          semester: result.semester,
+          academicYear: result.year,
+        },
+        subjects: result.subjects.map(s => ({
+          name: s.name,
+          marks: s.marks,
+          maxMarks: s.max,
+          credits: s.credit
+        }))
+      })
+    });
+  } catch (err) {
+    // Non-blocking telemetry
+  }
 }

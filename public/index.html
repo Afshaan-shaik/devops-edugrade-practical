@@ -3,343 +3,353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduGrade | Student Result & Grade Converter (DevOps CI/CD Demo)</title>
-  <meta name="description" content="Containerized Student Marks and Grade Converter Web Application built for DevOps CI/CD pipeline demonstration.">
+  <meta name="description" content="EduGrade Student Result and Grade Converter with Automated CI/CD">
+  <title>EduGrade | Student Result & Grade Converter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-background"></div>
+  <!-- Navigation -->
+  <nav>
+    <div class="container nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">EG</span>
+        <span>
+          <strong>EduGrade</strong>
+          <small>DevOps Edition</small>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#formSection">Evaluate</a>
+        <a href="#records">Records</a>
+        <span class="online" id="statusPill"><i class="dot"></i> <span id="statusText">Online · v1.0.0</span></span>
+      </div>
+    </div>
+  </nav>
 
-  <!-- Top Navigation Bar -->
-  <header class="navbar">
-    <div class="nav-container">
-      <div class="logo-group">
-        <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="eyebrow">Smart Academic Evaluation Platform</div>
+        <h1>Student Result & <span>Grade Converter</span></h1>
+        <p class="hero-copy">Enter subject marks to instantly compute percentage, weighted SGPA, 10-point UGC grades and a formal, print-ready academic transcript.</p>
+        <div class="actions">
+          <a href="#formSection" class="btn btn-primary">Start Evaluation →</a>
+          <button class="btn btn-light" onclick="loadSample()">Load Sample Data</button>
         </div>
-        <div class="logo-text">
-          <span class="brand-title">EduGrade</span>
-          <span class="brand-tag">DevOps CI/CD Edition</span>
+        <div class="tech-row">
+          <span>◈ GitHub Actions</span>
+          <span>▣ Dockerized</span>
+          <span>⬡ Nginx</span>
+          <span>☁ AWS EC2</span>
         </div>
       </div>
-
-      <div class="nav-actions">
-        <div class="badge-status" id="containerStatusBadge">
-          <span class="status-dot"></span>
-          <span class="status-label" id="statusLabelText">Checking...</span>
+      <div class="preview">
+        <div class="preview-top">
+          <div>
+            <strong>Evaluation Preview</strong><br>
+            <small>Live calculation</small>
+          </div>
+          <span class="mini-status">● SYSTEM HEALTHY</span>
         </div>
-        <div class="badge-version" id="versionBadge">v1.0.0</div>
-        <button class="btn btn-outline btn-sm" id="btnDevOpsModal">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-            <line x1="6" y1="6" x2="6.01" y2="6"></line>
-            <line x1="6" y1="18" x2="6.01" y2="18"></line>
-          </svg>
-          DevOps Info
-        </button>
+        <div class="preview-card">
+          <div class="student-mini">
+            <div class="avatar">AP</div>
+            <div>
+              <strong>Academic Performance</strong><br>
+              <small>Semester evaluation overview</small>
+            </div>
+          </div>
+          <div class="mini-metrics">
+            <div class="mini-metric">
+              <small>PERCENTAGE</small>
+              <strong>84.6%</strong>
+            </div>
+            <div class="mini-metric">
+              <small>SGPA</small>
+              <strong>9.0</strong>
+            </div>
+            <div class="mini-metric">
+              <small>RESULT</small>
+              <strong style="color:#079455">PASS</strong>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <main class="main-content">
-    <div class="page-header">
-      <div class="hero-badge">Automated CI/CD • Docker Containerized • AWS Deployed</div>
-      <h1 class="page-title">Student Result & Grade Converter</h1>
-      <p class="page-subtitle">Enter subject marks to instantly compute Percentage, SGPA/CGPA, 10-Point UGC Grades, and print formal academic transcripts.</p>
-    </div>
-
-    <!-- Quick Presets -->
-    <div class="preset-toolbar">
-      <span class="preset-label">Quick Templates:</span>
-      <button type="button" class="preset-chip" id="presetEngineering">Engineering (5 Subjects)</button>
-      <button type="button" class="preset-chip" id="presetHighSchool">High School (6 Subjects)</button>
-      <button type="button" class="preset-chip" id="presetSampleData">Load Sample Pass</button>
-      <button type="button" class="preset-chip chip-danger" id="presetClear">Clear All</button>
-    </div>
-
-    <div class="grid-layout">
-      <!-- Input Panel -->
-      <section class="card input-card">
-        <div class="card-header">
-          <div class="card-title-group">
-            <span class="card-step">01</span>
-            <h2>Student Details & Subjects</h2>
+  <!-- Main Dashboard -->
+  <main id="dashboard">
+    <div class="container">
+      <!-- Stats Overview Bar -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-top">
+            <span class="icon">♙</span>
+            <span class="tag">Live</span>
           </div>
-          <span class="text-muted">Standard 10-Point UGC Scale</span>
+          <h3 id="totalStudents">0</h3>
+          <p>Total students evaluated</p>
         </div>
+        <div class="stat">
+          <div class="stat-top">
+            <span class="icon">✓</span>
+            <span class="tag">Overall</span>
+          </div>
+          <h3 id="passRate">0%</h3>
+          <p>Student pass percentage</p>
+        </div>
+        <div class="stat">
+          <div class="stat-top">
+            <span class="icon">◇</span>
+            <span class="tag">Average</span>
+          </div>
+          <h3 id="avgSgpa">0.0</h3>
+          <p>Average weighted SGPA</p>
+        </div>
+        <div class="stat">
+          <div class="stat-top">
+            <span class="icon">▤</span>
+            <span class="tag">Saved</span>
+          </div>
+          <h3 id="reportCount">0</h3>
+          <p>Generated academic reports</p>
+        </div>
+      </div>
 
-        <form id="marksForm">
-          <!-- Student Metadata -->
-          <div class="student-meta-grid">
-            <div class="form-group">
-              <label for="studentName">Student Full Name</label>
-              <input type="text" id="studentName" placeholder="e.g. Alex Johnson" value="John Doe" required>
+      <!-- Section 01: Student Details & Subjects Form -->
+      <section class="section" id="formSection">
+        <div class="section-head">
+          <div class="section-title">
+            <span class="number">01</span>
+            <div>
+              <h2>Student Details & Subjects</h2>
+              <p>Standard 10-point UGC grading scale</p>
             </div>
-            <div class="form-group">
-              <label for="studentRoll">Roll / Registration No.</label>
-              <input type="text" id="studentRoll" placeholder="e.g. 21CS042" value="2026-DEV-042" required>
+          </div>
+          <div class="tiny-actions">
+            <button onclick="engineeringTemplate()">Engineering (5)</button>
+            <button onclick="schoolTemplate()">High School (6)</button>
+            <button onclick="loadSample()">Sample Pass</button>
+            <button onclick="clearAll()">Clear All</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="form-grid">
+            <div class="field">
+              <label>Student Full Name *</label>
+              <input id="name" placeholder="e.g. Pavan Pujar">
             </div>
-            <div class="form-group">
-              <label for="studentSemester">Semester / Year</label>
-              <input type="text" id="studentSemester" placeholder="e.g. 6th Semester" value="6th Semester">
+            <div class="field">
+              <label>Roll / Registration No. *</label>
+              <input id="roll" placeholder="e.g. P02AS25S126035">
             </div>
-            <div class="form-group">
-              <label for="academicYear">Academic Year</label>
-              <input type="text" id="academicYear" value="2025-2026">
+            <div class="field">
+              <label>Course</label>
+              <input id="course" placeholder="e.g. MCA">
+            </div>
+            <div class="field">
+              <label>Semester / Year</label>
+              <select id="semester">
+                <option>Semester 1</option>
+                <option selected>Semester 2</option>
+                <option>Semester 3</option>
+                <option>Semester 4</option>
+                <option>Year 1</option>
+                <option>Year 2</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Academic Year</label>
+              <input id="year" value="2025–2026">
+            </div>
+            <div class="field">
+              <label>Institution Name</label>
+              <input id="institution" value="KLE Society's P. C. Jabin Science College">
             </div>
           </div>
 
-          <!-- Dynamic Subjects Table -->
-          <div class="table-responsive">
-            <table class="marks-table" id="subjectsTable">
+          <div class="subject-bar">
+            <div>
+              <h3>Subject Marks</h3>
+              <p>Marks must be between 0 and maximum marks.</p>
+            </div>
+            <div class="tiny-actions">
+              <button onclick="addSubject()">＋ Add Subject</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
               <thead>
                 <tr>
-                  <th style="width: 35%;">Subject Name</th>
-                  <th style="width: 18%;">Marks Obtained</th>
-                  <th style="width: 15%;">Max Marks</th>
-                  <th style="width: 14%;">Credits</th>
-                  <th style="width: 18%;">Action</th>
+                  <th style="width:42px">#</th>
+                  <th>Subject Name</th>
+                  <th>Code</th>
+                  <th>Marks</th>
+                  <th>Max Marks</th>
+                  <th>Credits</th>
+                  <th>Action</th>
                 </tr>
               </thead>
-              <tbody id="subjectsBody">
-                <!-- Rows injected dynamically via app.js -->
-              </tbody>
+              <tbody id="subjectRows"></tbody>
             </table>
           </div>
 
-          <!-- Form Actions -->
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" id="btnAddSubject">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Add Subject
-            </button>
-            <div class="submit-group">
-              <button type="submit" class="btn btn-primary" id="btnCalculate">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-                Calculate Results
-              </button>
+          <div id="message" class="message"></div>
+
+          <div class="form-footer">
+            <p style="font-size:12px;color:var(--muted);align-self:center">Minimum 40% required in every subject to pass.</p>
+            <div class="actions">
+              <button class="btn btn-soft" onclick="addSubject()">＋ Add Subject</button>
+              <button class="btn btn-primary" onclick="calculate()">Calculate Results →</button>
             </div>
           </div>
-        </form>
+        </div>
       </section>
 
-      <!-- Results Panel -->
-      <section class="card result-card" id="resultCard">
-        <div class="card-header">
-          <div class="card-title-group">
-            <span class="card-step">02</span>
-            <h2>Evaluation Report</h2>
-          </div>
-          <button class="btn btn-outline btn-sm no-print" id="btnPrintReport" disabled>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-            Print Transcript
-          </button>
-        </div>
-
-        <!-- Initial Placeholder State -->
-        <div class="placeholder-state" id="resultPlaceholder">
-          <div class="placeholder-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-          </div>
-          <h3>Ready for Evaluation</h3>
-          <p>Fill out the subjects and marks on the left and click <strong>Calculate Results</strong> to see comprehensive performance analytics.</p>
-        </div>
-
-        <!-- Populated Results Container -->
-        <div class="results-content hidden" id="resultContent">
-          <!-- Primary Outcome Banner -->
-          <div class="outcome-banner" id="outcomeBanner">
-            <div class="outcome-icon" id="outcomeIcon">✓</div>
-            <div class="outcome-text">
-              <span class="outcome-status" id="outcomeStatus">PASSED</span>
-              <span class="outcome-division" id="outcomeDivision">First Class with Distinction</span>
+      <!-- Section 02: Academic Evaluation Report -->
+      <section class="section" id="report">
+        <div class="report-hero">
+          <div class="profile">
+            <div class="report-avatar" id="initials">ST</div>
+            <div>
+              <h2 id="reportName">Student Name</h2>
+              <p><span id="reportRoll">Registration</span> · <span id="reportCourse">Course</span> · <span id="reportSem">Semester</span></p>
             </div>
-            <div class="grade-pill-large" id="outcomeGradePill">O (10.0)</div>
           </div>
+          <span id="resultPill" class="result-pill pass">PASS</span>
+        </div>
 
-          <!-- Key Metrics Grid -->
-          <div class="metrics-grid">
-            <div class="metric-box">
-              <span class="metric-label">Percentage</span>
-              <span class="metric-value" id="valPercentage">0.00%</span>
-              <div class="progress-bar-wrap">
-                <div class="progress-bar-fill" id="barPercentage" style="width: 0%"></div>
+        <div class="section-head">
+          <div class="section-title">
+            <span class="number">02</span>
+            <div>
+              <h2>Academic Evaluation Report</h2>
+              <p id="reportInstitution">Institution</p>
+            </div>
+          </div>
+          <div class="actions no-print">
+            <button class="btn btn-soft" onclick="saveRecord()">Save Student</button>
+            <button class="btn btn-dark" onclick="window.print()">Print Transcript</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="report-grid">
+            <div>
+              <div class="score-ring" id="scoreRing">
+                <div>
+                  <strong id="percentage">0%</strong>
+                  <small>Percentage</small>
+                </div>
               </div>
+              <div class="performance" id="classification" style="text-align:center;border-left:0;margin-top:18px">Classification</div>
             </div>
 
-            <div class="metric-box">
-              <span class="metric-label">SGPA / CGPA</span>
-              <span class="metric-value text-accent" id="valGpa">0.00</span>
-              <span class="metric-hint">10.0 Max Scale</span>
-            </div>
+            <div>
+              <div class="summary-cards">
+                <div class="summary-card">
+                  <small>TOTAL MARKS</small>
+                  <strong id="totalMarks">0 / 0</strong>
+                </div>
+                <div class="summary-card">
+                  <small>WEIGHTED SGPA</small>
+                  <strong id="sgpa">0.0</strong>
+                </div>
+                <div class="summary-card">
+                  <small>FINAL GRADE</small>
+                  <strong id="finalGrade">—</strong>
+                </div>
+                <div class="summary-card">
+                  <small>SUBJECTS PASSED</small>
+                  <strong id="passedCount">0 / 0</strong>
+                </div>
+              </div>
 
-            <div class="metric-box">
-              <span class="metric-label">Total Marks</span>
-              <span class="metric-value" id="valTotalMarks">0 / 0</span>
-              <span class="metric-hint" id="valSubjectCount">0 Subjects</span>
-            </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th>Code</th>
+                      <th>Marks</th>
+                      <th>Percent</th>
+                      <th>Credits</th>
+                      <th>Grade</th>
+                      <th>Point</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultRows"></tbody>
+                </table>
+              </div>
 
-            <div class="metric-box">
-              <span class="metric-label">Grade Category</span>
-              <span class="metric-value text-highlight" id="valGradeLabel">Outstanding</span>
-              <span class="metric-hint" id="valFailedCount">0 Backlogs</span>
+              <div class="performance" id="performanceText">Performance summary appears here.</div>
             </div>
           </div>
 
-          <!-- Subject Breakdown List -->
-          <div class="breakdown-section">
-            <h3 class="section-subtitle">Subject Performance Breakdown</h3>
-            <div class="table-responsive">
-              <table class="report-table">
-                <thead>
-                  <tr>
-                    <th>Subject</th>
-                    <th>Marks</th>
-                    <th>Percentage</th>
-                    <th>Grade</th>
-                    <th>Points</th>
-                    <th>Credits</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="reportTableBody">
-                  <!-- Dynamically injected -->
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <p style="margin-top:22px;text-align:right;color:var(--muted);font-size:11px">Generated by EduGrade · Academic Year <span id="reportYear"></span></p>
+        </div>
+      </section>
 
-          <!-- High & Low Highlights -->
-          <div class="highlights-grid">
-            <div class="highlight-item high-item">
-              <span class="hl-badge">Highest Scoring</span>
-              <span class="hl-subject" id="hlTopSubject">-</span>
-              <span class="hl-score" id="hlTopScore">-</span>
-            </div>
-            <div class="highlight-item low-item">
-              <span class="hl-badge">Needs Attention</span>
-              <span class="hl-subject" id="hlLowSubject">-</span>
-              <span class="hl-score" id="hlLowScore">-</span>
+      <!-- Section 03: Saved Student Records -->
+      <section class="section" id="records">
+        <div class="section-head">
+          <div class="section-title">
+            <span class="number">03</span>
+            <div>
+              <h2>Saved Student Records</h2>
+              <p>Stored securely in this browser</p>
             </div>
           </div>
+          <div class="records-tools">
+            <input id="search" placeholder="Search name or roll..." oninput="renderRecords()">
+            <select id="filter" onchange="renderRecords()">
+              <option value="all">All Results</option>
+              <option value="PASS">Passed</option>
+              <option value="FAIL">Failed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Registration No.</th>
+                  <th>Course</th>
+                  <th>Semester</th>
+                  <th>Percentage</th>
+                  <th>SGPA</th>
+                  <th>Grade</th>
+                  <th>Result</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recordsRows"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="empty">No saved records yet. Calculate and save a student result.</div>
         </div>
       </section>
     </div>
-
-    <!-- UGC Grade Scale Reference Section -->
-    <section class="scale-section card">
-      <div class="scale-header" id="scaleToggle">
-        <div class="scale-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span>Grading Scale Reference Table (UGC 10-Point Standard)</span>
-        </div>
-        <span class="toggle-icon">▼</span>
-      </div>
-      <div class="scale-body" id="scaleBody">
-        <div class="scale-chips-grid">
-          <div class="scale-chip"><span class="sc-grade">O</span><span class="sc-marks">90 - 100%</span><span class="sc-pts">10 Pts</span><span class="sc-desc">Outstanding</span></div>
-          <div class="scale-chip"><span class="sc-grade">A+</span><span class="sc-marks">80 - 89%</span><span class="sc-pts">9 Pts</span><span class="sc-desc">Excellent</span></div>
-          <div class="scale-chip"><span class="sc-grade">A</span><span class="sc-marks">70 - 79%</span><span class="sc-pts">8 Pts</span><span class="sc-desc">Very Good</span></div>
-          <div class="scale-chip"><span class="sc-grade">B+</span><span class="sc-marks">60 - 69%</span><span class="sc-pts">7 Pts</span><span class="sc-desc">Good</span></div>
-          <div class="scale-chip"><span class="sc-grade">B</span><span class="sc-marks">55 - 59%</span><span class="sc-pts">6 Pts</span><span class="sc-desc">Above Average</span></div>
-          <div class="scale-chip"><span class="sc-grade">C</span><span class="sc-marks">50 - 54%</span><span class="sc-pts">5 Pts</span><span class="sc-desc">Average</span></div>
-          <div class="scale-chip"><span class="sc-grade">P</span><span class="sc-marks">40 - 49%</span><span class="sc-pts">4 Pts</span><span class="sc-desc">Pass</span></div>
-          <div class="scale-chip chip-fail"><span class="sc-grade">F</span><span class="sc-marks">&lt; 40%</span><span class="sc-pts">0 Pts</span><span class="sc-desc">Fail</span></div>
-        </div>
-      </div>
-    </section>
   </main>
 
-  <!-- DevOps Diagnostics Modal -->
-  <div class="modal-backdrop" id="devOpsModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-          <h3>DevOps Architecture & Diagnostics</h3>
-        </div>
-        <button class="modal-close" id="btnCloseModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-desc">Real-time telemetry and deployment details for the running containerized service.</p>
-        
-        <div class="diag-grid">
-          <div class="diag-item">
-            <span class="diag-k">Status</span>
-            <span class="diag-v badge-healthy" id="diagStatus">UP</span>
-          </div>
-          <div class="diag-item">
-            <span class="diag-k">App Version</span>
-            <span class="diag-v" id="diagVersion">1.0.0</span>
-          </div>
-          <div class="diag-item">
-            <span class="diag-k">Environment</span>
-            <span class="diag-v" id="diagEnv">production</span>
-          </div>
-          <div class="diag-item">
-            <span class="diag-k">Container Host</span>
-            <span class="diag-v text-code" id="diagHost">localhost</span>
-          </div>
-          <div class="diag-item">
-            <span class="diag-k">Container Uptime</span>
-            <span class="diag-v" id="diagUptime">0s</span>
-          </div>
-          <div class="diag-item">
-            <span class="diag-k">Node.js Runtime</span>
-            <span class="diag-v text-code" id="diagNode">v20</span>
-          </div>
-        </div>
-
-        <div class="modal-endpoints">
-          <h4>DevOps Service Endpoints:</h4>
-          <div class="endpoint-links">
-            <a href="/health" target="_blank" class="ep-badge">GET /health</a>
-            <a href="/api/version" target="_blank" class="ep-badge">GET /api/version</a>
-            <a href="/metrics" target="_blank" class="ep-badge">GET /metrics</a>
-            <a href="/api/scale" target="_blank" class="ep-badge">GET /api/scale</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Footer -->
-  <footer class="footer no-print">
-    <div class="footer-container">
-      <p>DevOps Engineering Practical: <strong>Containerized Web Application with Automated CI/CD</strong></p>
-      <p class="footer-sub">Node.js • Express • Jest • Docker • GitHub Actions • AWS Cloud</p>
-    </div>
+  <footer>
+    <span class="footer-brand">EduGrade DevOps</span> · Automated CI/CD · Docker Containerized · AWS Ready<br>
+    Built as an MCA DevOps Mini Project
   </footer>
+
+  <div class="toast" id="toast">Saved successfully</div>
 
   <script src="app.js"></script>
 </body>
