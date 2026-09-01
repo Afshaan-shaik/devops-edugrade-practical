@@ -161,9 +161,24 @@ function evaluateResults(subjects, studentInfo = {}) {
   };
 }
 
+/**
+ * Converts a 10-point GPA to standard percentage using AICTE/CBSE standard formula: Percentage = GPA * 9.5
+ * @param {number} gpa 
+ * @returns {number}
+ */
+function convertGpaToPercentage(gpa) {
+  const num = Number(gpa);
+  if (isNaN(num) || num < 0 || num > 10) {
+    throw new Error('GPA must be a valid number between 0 and 10');
+  }
+  return Number((num * 9.5).toFixed(2));
+}
+
 module.exports = {
   GRADE_SCALE,
   getGradeDetails,
   validateSubject,
   evaluateResults,
+  convertGpaToPercentage,
 };
+

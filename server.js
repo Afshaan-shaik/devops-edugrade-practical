@@ -106,6 +106,21 @@ app.get('/api/scale', (req, res) => {
 });
 
 /**
+ * GPA to Percentage Conversion Endpoint (New in v1.1.0)
+ */
+app.get('/api/convert/gpa-to-percentage', (req, res) => {
+  try {
+    const gpa = parseFloat(req.query.gpa);
+    const { convertGpaToPercentage } = require('./src/evaluator');
+    const percentage = convertGpaToPercentage(gpa);
+    res.json({ success: true, gpa, percentage, formula: 'GPA * 9.5' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+
+/**
  * Calculate Student Result Endpoint
  */
 app.post('/api/calculate', (req, res) => {
