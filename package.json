@@ -1,0 +1,40 @@
+{
+  "name": "edugrade-devops-app",
+  "version": "1.0.0",
+  "description": "Containerized Student Marks & Result Evaluator Web Application with Automated CI/CD",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:coverage": "jest --coverage",
+    "lint": "node -c server.js src/*.js tests/*.js"
+  },
+  "keywords": [
+    "devops",
+    "docker",
+    "github-actions",
+    "aws",
+    "student-result",
+    "ci-cd"
+  ],
+  "author": "DevOps Student",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/logger.js"
+    ]
+  }
+}

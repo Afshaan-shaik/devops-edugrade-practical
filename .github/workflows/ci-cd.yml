@@ -1,0 +1,137 @@
+name: EduGrade CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: 'Deployment Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # =========================================================================
+  # STEP 1 & 7: Linting & Automated Testing
+  # =========================================================================
+  test:
+    name: Automated Unit & Integration Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Syntax & Linting
+        run: npm run lint
+
+      - name: Run Automated Tests
+        run: npm test
+
+  # =========================================================================
+  # STEP 4 & 5: Dockerfile Verification, Image Build & Container Health Test
+  # =========================================================================
+  docker-build-test:
+    name: Build Docker Image & Verify Container
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Production Docker Image
+        run: |
+          docker build \
+            --tag edugrade:ci-test \
+            --tag edugrade:latest \
+            .
+
+      - name: Run Container & Verify Health
+        run: |
+          echo "Starting container in detached mode..."
+          docker run -d --name edugrade-ci -p 8080:8080 -e NODE_ENV=production edugrade:ci-test
+          
+          echo "Waiting for container initialization..."
+          sleep 5
+          
+          echo "Testing /health endpoint..."
+          curl --fail --retry 5 --retry-delay 2 http://localhost:8080/health
+          
+          echo "Testing /api/version endpoint..."
+          curl --fail http://localhost:8080/api/version
+          
+          echo "Testing /api/calculate endpoint..."
+          curl -X POST http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"subjects":[{"name":"DevOps","marks":90,"maxMarks":100,"credits":4}]}'
+
+      - name: View Container Logs (DevOps Monitoring)
+        if: always()
+        run: |
+          echo "=== Docker Container Logs ==="
+          docker logs edugrade-ci || true
+          docker stop edugrade-ci || true
+          docker rm edugrade-ci || true
+
+  # =========================================================================
+  # STEP 8, 9, 11 & 12: Deployment & Release / Rollback Workflow
+  # =========================================================================
+  deploy:
+    name: Deploy to Cloud (AWS / Staging)
+    needs: docker-build-test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Release Tag
+        id: vars
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=v1.0.0-sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Simulate Production Deployment to AWS
+        env:
+          APP_VERSION: ${{ steps.vars.outputs.TAG }}
+          DEPLOY_ENV: production
+        run: |
+          echo "=========================================================="
+          echo "Deploying Release: $APP_VERSION to AWS ($DEPLOY_ENV)"
+          echo "Target Host: AWS EC2 / App Runner Container Service"
+          echo "Health Check URL: http://your-aws-ec2-ip:8080/health"
+          echo "=========================================================="
+          echo "Pulling container image..."
+          echo "Executing zero-downtime rolling update..."
+          echo "Deployment successful! Status: HEALTHY"
