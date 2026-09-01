@@ -115,3 +115,21 @@ describe('Overall Result Evaluation', () => {
     expect(() => evaluateResults([])).toThrow('Subjects list must be a non-empty array');
   });
 });
+
+describe('GPA to Percentage Conversion (v1.1.0)', () => {
+  const { convertGpaToPercentage } = require('../src/evaluator');
+
+  test('should accurately convert 10.0 GPA to 95%', () => {
+    expect(convertGpaToPercentage(10.0)).toBe(95.0);
+  });
+
+  test('should accurately convert 8.5 GPA to 80.75%', () => {
+    expect(convertGpaToPercentage(8.5)).toBe(80.75);
+  });
+
+  test('should throw error for GPA > 10 or negative', () => {
+    expect(() => convertGpaToPercentage(11)).toThrow('GPA must be a valid number between 0 and 10');
+    expect(() => convertGpaToPercentage(-1)).toThrow('GPA must be a valid number between 0 and 10');
+  });
+});
+
