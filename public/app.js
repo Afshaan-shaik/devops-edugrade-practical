@@ -265,15 +265,51 @@ function getRecords() {
 }
 
 function saveResult() {
-  if (!latestResult) return toast("Calculate a result first");
-  let rec = getRecords();
+  if (!latestResult) return toast("No evaluation to save");
+  const rec = getRecords();
   const id = Date.now();
   rec.unshift({ ...latestResult, id });
   localStorage.setItem("egRecords", JSON.stringify(rec));
   updateDashboard();
   renderRecords();
   refreshAnalytics();
-  toast("Saved successfully");
+
+  // Also save to MySQL backend asynchronously
+  fetch('/api/records', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      student: {
+        name: latestResult.name,
+        rollNo: latestResult.reg,
+        course: latestResult.course,
+        semester: latestResult.semester,
+        year: latestResult.year,
+        institution: latestResult.institution,
+      },
+      result: {
+        totalMarks: latestResult.total,
+        maxMarks: latestResult.maxTotal,
+        overallPercentage: latestResult.pct,
+        sgpa: latestResult.sgpa,
+        grade: latestResult.grade,
+        resultStatus: latestResult.status,
+        totalCredits: latestResult.credits,
+        subjects: latestResult.subjects,
+      },
+    }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        toast("✓ Saved to MySQL Database & Browser Storage!");
+      } else {
+        toast("✓ Saved to Browser Storage");
+      }
+    })
+    .catch(() => {
+      toast("✓ Saved to Browser Storage");
+    });
 }
 
 function deleteRecord(id) {

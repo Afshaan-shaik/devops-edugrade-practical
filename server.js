@@ -8,6 +8,7 @@ const cors = require('cors');
 const path = require('path');
 const os = require('os');
 const logger = require('./src/logger');
+const db = require('./src/db');
 const { evaluateResults, GRADE_SCALE } = require('./src/evaluator');
 
 const app = express();
@@ -235,8 +236,62 @@ app.get('/api/devops/status', (req, res) => {
   });
 });
 
+/**
+ * MySQL Database Status Endpoint
+ */
+app.get('/api/db/health', (req, res) => {
+  res.json({
+    success: true,
+    db: db.getDbStatus(),
+  });
+});
+
+/**
+ * Save Student Evaluation Record to MySQL Database
+ */
+app.post('/api/records', async (req, res) => {
+  try {
+    const { student, result } = req.body;
+    if (!student || !result) {
+      return res.status(400).json({ success: false, error: 'student and result objects are required' });
+    }
+    const saved = await db.saveEvaluationRecord({ student, result });
+    return res.status(201).json({ success: true, data: saved });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * Fetch All Evaluated Student Records from MySQL Database
+ */
+app.get('/api/records', async (req, res) => {
+  try {
+    const records = await db.getAllEvaluations();
+    return res.json({ success: true, count: records.length, records });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * Fetch Detailed Student Transcript with Subject Breakdown by Evaluation ID
+ */
+app.get('/api/records/:id', async (req, res) => {
+  try {
+    const details = await db.getEvaluationDetails(req.params.id);
+    if (!details) {
+      return res.status(404).json({ success: false, error: 'Record not found' });
+    }
+    return res.json({ success: true, data: details });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Fallback to index.html for SPA routes
 app.get('*', (req, res) => {
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -263,6 +318,11 @@ if (require.main === module) {
       }
     });
   }
+
+  // Initialize MySQL database connection asynchronously
+  db.initDb().catch((err) => {
+    logger.warn('MySQL init warning', { message: err.message });
+  });
 
   startServer(PORT);
 
