@@ -2,354 +2,430 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="EduGrade Student Result and Grade Converter with Automated CI/CD">
-  <title>EduGrade | Student Result & Grade Converter</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>EduGrade DevOps | Student Result & Grade Converter</title>
+  <meta name="description" content="EduGrade DevOps - Smart Academic Evaluation Platform">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Navigation -->
-  <nav>
-    <div class="container nav-inner">
-      <a class="brand" href="#">
-        <span class="brand-mark">EG</span>
-        <span>
-          <strong>EduGrade</strong>
-          <small>DevOps Edition</small>
-        </span>
-      </a>
-      <div class="nav-links">
-        <a href="#dashboard">Dashboard</a>
-        <a href="#formSection">Evaluate</a>
-        <a href="#records">Records</a>
-        <span class="online" id="statusPill"><i class="dot"></i> <span id="statusText">Online · v1.0.0</span></span>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Hero Section -->
-  <header class="hero">
-    <div class="container hero-grid">
-      <div>
-        <div class="eyebrow">Smart Academic Evaluation Platform</div>
-        <h1>Student Result & <span>Grade Converter</span></h1>
-        <p class="hero-copy">Enter subject marks to instantly compute percentage, weighted SGPA, 10-point UGC grades and a formal, print-ready academic transcript.</p>
-        <div class="actions">
-          <a href="#formSection" class="btn btn-primary">Start Evaluation →</a>
-          <button class="btn btn-light" onclick="loadSample()">Load Sample Data</button>
-        </div>
-        <div class="tech-row">
-          <span>◈ GitHub Actions</span>
-          <span>▣ Dockerized</span>
-          <span>⬡ Nginx</span>
-          <span>☁ AWS EC2</span>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="side-brand">
+        <div class="side-logo">EG</div>
+        <div>
+          <h3>EduGrade</h3>
+          <span>DEVOPS EDITION</span>
         </div>
       </div>
-      <div class="preview">
-        <div class="preview-top">
-          <div>
-            <strong>Evaluation Preview</strong><br>
-            <small>Live calculation</small>
-          </div>
-          <span class="mini-status">● SYSTEM HEALTHY</span>
-        </div>
-        <div class="preview-card">
-          <div class="student-mini">
-            <div class="avatar">AP</div>
-            <div>
-              <strong>Academic Performance</strong><br>
-              <small>Semester evaluation overview</small>
-            </div>
-          </div>
-          <div class="mini-metrics">
-            <div class="mini-metric">
-              <small>PERCENTAGE</small>
-              <strong>84.6%</strong>
-            </div>
-            <div class="mini-metric">
-              <small>SGPA</small>
-              <strong>9.0</strong>
-            </div>
-            <div class="mini-metric">
-              <small>RESULT</small>
-              <strong style="color:#079455">PASS</strong>
-            </div>
-          </div>
-        </div>
+      <div class="side-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <a class="active" href="#dashboard" onclick="closeMobileNav()"><span class="ico">⌂</span>Dashboard</a>
+        <a href="#evaluation" onclick="closeMobileNav()"><span class="ico">✦</span>New Evaluation</a>
+        <a href="#resultSection" onclick="closeMobileNav()"><span class="ico">◇</span>Result Report</a>
+        <a href="#records" onclick="closeMobileNav()"><span class="ico">▤</span>Student Records</a>
+        <a href="#analytics" onclick="closeMobileNav()"><span class="ico">⌁</span>Analytics</a>
+      </nav>
+      <div class="side-label">SYSTEM</div>
+      <nav class="side-nav">
+        <a href="#devops" onclick="closeMobileNav()"><span class="ico">⚙</span>DevOps Pipeline</a>
+        <button onclick="openDrawer()"><span class="ico">☰</span>Project Info</button>
+        <button onclick="toggleTheme()"><span class="ico">◐</span>Appearance</button>
+      </nav>
+      <div class="side-footer">
+        <div class="health"><span class="dot"></span> All systems operational</div>
+        <p>Frontend · Docker · Nginx · EC2<br>Client Demo Build v3.0.0</p>
       </div>
-    </div>
-  </header>
+    </aside>
 
-  <!-- Main Dashboard -->
-  <main id="dashboard">
-    <div class="container">
-      <!-- Stats Overview Bar -->
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-top">
-            <span class="icon">♙</span>
-            <span class="tag">Live</span>
-          </div>
-          <h3 id="totalStudents">0</h3>
-          <p>Total students evaluated</p>
-        </div>
-        <div class="stat">
-          <div class="stat-top">
-            <span class="icon">✓</span>
-            <span class="tag">Overall</span>
-          </div>
-          <h3 id="passRate">0%</h3>
-          <p>Student pass percentage</p>
-        </div>
-        <div class="stat">
-          <div class="stat-top">
-            <span class="icon">◇</span>
-            <span class="tag">Average</span>
-          </div>
-          <h3 id="avgSgpa">0.0</h3>
-          <p>Average weighted SGPA</p>
-        </div>
-        <div class="stat">
-          <div class="stat-top">
-            <span class="icon">▤</span>
-            <span class="tag">Saved</span>
-          </div>
-          <h3 id="reportCount">0</h3>
-          <p>Generated academic reports</p>
-        </div>
-      </div>
-
-      <!-- Section 01: Student Details & Subjects Form -->
-      <section class="section" id="formSection">
-        <div class="section-head">
-          <div class="section-title">
-            <span class="number">01</span>
+    <!-- Main Content Area -->
+    <div class="main-app">
+      <header>
+        <div class="container nav">
+          <div class="brand">
+            <div class="logo">EG</div>
             <div>
-              <h2>Student Details & Subjects</h2>
-              <p>Standard 10-point UGC grading scale</p>
+              <h3>EduGrade</h3>
+              <small>DEVOPS EDITION</small>
             </div>
           </div>
-          <div class="tiny-actions">
-            <button onclick="engineeringTemplate()">Engineering (5)</button>
-            <button onclick="schoolTemplate()">High School (6)</button>
-            <button onclick="loadSample()">Sample Pass</button>
-            <button onclick="clearAll()">Clear All</button>
-          </div>
-        </div>
-        <div class="content">
-          <div class="form-grid">
-            <div class="field">
-              <label>Student Full Name *</label>
-              <input id="name" placeholder="e.g. Pavan Pujar">
+          <nav class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#evaluation">Evaluation</a>
+            <a href="#records">Records</a>
+            <a href="#devops">DevOps</a>
+          </nav>
+          <div class="nav-actions">
+            <button class="icon-btn mobile-menu" onclick="toggleMobileNav()" title="Menu">☰</button>
+            <div class="topbar-meta">
+              <span class="client-chip">Client Demo · v3.0</span>
+              <div class="avatar">AD</div>
             </div>
-            <div class="field">
-              <label>Roll / Registration No. *</label>
-              <input id="roll" placeholder="e.g. P02AS25S126035">
-            </div>
-            <div class="field">
-              <label>Course</label>
-              <input id="course" placeholder="e.g. MCA">
-            </div>
-            <div class="field">
-              <label>Semester / Year</label>
-              <select id="semester">
-                <option>Semester 1</option>
-                <option selected>Semester 2</option>
-                <option>Semester 3</option>
-                <option>Semester 4</option>
-                <option>Year 1</option>
-                <option>Year 2</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Academic Year</label>
-              <input id="year" value="2025–2026">
-            </div>
-            <div class="field">
-              <label>Institution Name</label>
-              <input id="institution" value="KLE Society's P. C. Jabin Science College">
-            </div>
-          </div>
-
-          <div class="subject-bar">
-            <div>
-              <h3>Subject Marks</h3>
-              <p>Marks must be between 0 and maximum marks.</p>
-            </div>
-            <div class="tiny-actions">
-              <button onclick="addSubject()">＋ Add Subject</button>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:42px">#</th>
-                  <th>Subject Name</th>
-                  <th>Code</th>
-                  <th>Marks</th>
-                  <th>Max Marks</th>
-                  <th>Credits</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="subjectRows"></tbody>
-            </table>
-          </div>
-
-          <div id="message" class="message"></div>
-
-          <div class="form-footer">
-            <p style="font-size:12px;color:var(--muted);align-self:center">Minimum 40% required in every subject to pass.</p>
-            <div class="actions">
-              <button class="btn btn-soft" onclick="addSubject()">＋ Add Subject</button>
-              <button class="btn btn-primary" onclick="calculate()">Calculate Results →</button>
-            </div>
+            <button class="icon-btn" onclick="openDrawer()" title="Project info">ⓘ</button>
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">◐</button>
+            <button class="btn primary glow" onclick="newEvaluation()">＋ New Evaluation</button>
           </div>
         </div>
-      </section>
+      </header>
 
-      <!-- Section 02: Academic Evaluation Report -->
-      <section class="section" id="report">
-        <div class="report-hero">
-          <div class="profile">
-            <div class="report-avatar" id="initials">ST</div>
+      <main>
+        <!-- Hero Section -->
+        <section class="hero">
+          <div class="container hero-grid">
             <div>
-              <h2 id="reportName">Student Name</h2>
-              <p><span id="reportRoll">Registration</span> · <span id="reportCourse">Course</span> · <span id="reportSem">Semester</span></p>
+              <div class="eyebrow">● LIVE · v2.0.0 · SMART ACADEMIC PLATFORM</div>
+              <h1>Student Result & <span>Grade Converter</span></h1>
+              <p>Evaluate marks instantly, calculate percentage and weighted SGPA, generate UGC grades, save student records, export results and print professional academic transcripts from one clean dashboard.</p>
+              <div class="hero-actions">
+                <button class="btn primary glow" onclick="newEvaluation()">✦ Start New Evaluation →</button>
+                <button class="btn info" onclick="loadSample()">▶ Try Live Demo</button>
+                <button class="btn" onclick="document.querySelector('#records').scrollIntoView()">▤ View Records</button>
+              </div>
+              <div class="stack">
+                <span class="tech-pill">⚙ GitHub Actions</span>
+                <span class="tech-pill">▣ Docker</span>
+                <span class="tech-pill">⬡ Nginx</span>
+                <span class="tech-pill">☁ AWS EC2</span>
+                <span class="tech-pill">✓ CI/CD Ready</span>
+              </div>
+              <div class="hero-client-line">
+                <div class="hcl"><b>Fast Evaluation</b><span>Instant percentage, SGPA and grade</span></div>
+                <div class="hcl"><b>Secure Browser Storage</b><span>Records stay on the local device</span></div>
+                <div class="hcl"><b>Print-Ready Reports</b><span>Formal transcript generation</span></div>
+              </div>
             </div>
-          </div>
-          <span id="resultPill" class="result-pill pass">PASS</span>
-        </div>
-
-        <div class="section-head">
-          <div class="section-title">
-            <span class="number">02</span>
-            <div>
-              <h2>Academic Evaluation Report</h2>
-              <p id="reportInstitution">Institution</p>
-            </div>
-          </div>
-          <div class="actions no-print">
-            <button class="btn btn-soft" onclick="saveRecord()">Save Student</button>
-            <button class="btn btn-dark" onclick="window.print()">Print Transcript</button>
-          </div>
-        </div>
-
-        <div class="content">
-          <div class="report-grid">
-            <div>
-              <div class="score-ring" id="scoreRing">
+            <div class="hero-card">
+              <div class="server-top">
                 <div>
-                  <strong id="percentage">0%</strong>
-                  <small>Percentage</small>
+                  <b>Production Deployment</b>
+                  <div style="color:#94a3b8;font-size:12px;margin-top:4px">edugrade.devops.local</div>
                 </div>
+                <div class="live"><span class="dot"></span> ONLINE</div>
               </div>
-              <div class="performance" id="classification" style="text-align:center;border-left:0;margin-top:18px">Classification</div>
+              <div class="pipeline">
+                <div class="pipe"><div><b>GitHub Repository</b><br><span>main branch</span></div><span class="ok">✓ Synced</span></div>
+                <div class="pipe"><div><b>CI/CD Pipeline</b><br><span>GitHub Actions</span></div><span class="ok">✓ Passed</span></div>
+                <div class="pipe"><div><b>Docker Image</b><br><span>edugrade:v2.0</span></div><span class="ok">✓ Running</span></div>
+                <div class="pipe"><div><b>AWS EC2 + Nginx</b><br><span>Production Web Server</span></div><span class="ok">● Healthy</span></div>
+              </div>
             </div>
+          </div>
+        </section>
 
-            <div>
-              <div class="summary-cards">
-                <div class="summary-card">
-                  <small>TOTAL MARKS</small>
-                  <strong id="totalMarks">0 / 0</strong>
+        <!-- Academic Dashboard -->
+        <section class="section" id="dashboard">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">Overview</div>
+                <h2>Academic Dashboard</h2>
+                <div class="sub">Real-time statistics from saved browser records</div>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat"><div class="sicon">♙</div><b id="totalStudents">0</b><p>Total students evaluated</p></div>
+              <div class="stat"><div class="sicon">✓</div><b id="passRate">0%</b><p>Overall pass percentage</p></div>
+              <div class="stat"><div class="sicon">◇</div><b id="avgSgpa">0.0</b><p>Average weighted SGPA</p></div>
+              <div class="stat"><div class="sicon">▤</div><b id="savedCount">0</b><p>Generated academic reports</p></div>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-action" onclick="newEvaluation()"><div class="qa-icon">＋</div><b>New Result</b><span>Create evaluation</span></button>
+              <button class="quick-action" onclick="loadSample();document.querySelector('#evaluation').scrollIntoView()"><div class="qa-icon">▶</div><b>Demo Data</b><span>Instant preview</span></button>
+              <button class="quick-action" onclick="document.querySelector('#records').scrollIntoView()"><div class="qa-icon">⌕</div><b>Find Student</b><span>Search records</span></button>
+              <button class="quick-action" onclick="exportCSV()"><div class="qa-icon">⇩</div><b>Export CSV</b><span>Download results</span></button>
+              <button class="quick-action" onclick="printTranscript()"><div class="qa-icon">▤</div><b>Transcript</b><span>Preview & print</span></button>
+              <button class="quick-action" onclick="toggleTheme()"><div class="qa-icon">◐</div><b>Theme</b><span>Light / dark</span></button>
+            </div>
+            <div class="status-strip">
+              <div class="status-item"><strong>●</strong> Application Online</div>
+              <div class="status-item">✓ Auto Save Ready</div>
+              <div class="status-item">✓ Print Ready</div>
+              <div class="status-item">✓ Responsive UI</div>
+              <div class="status-item">✓ Client Demo Mode</div>
+            </div>
+            <div class="feature-ribbon">
+              <div class="feature"><b>UGC 10-Point Scale</b><span>O to F grading</span></div>
+              <div class="feature"><b>Weighted SGPA</b><span>Credit-aware calculation</span></div>
+              <div class="feature"><b>Smart Validation</b><span>Prevents invalid marks</span></div>
+              <div class="feature"><b>CSV Reporting</b><span>Export saved results</span></div>
+              <div class="feature"><b>Dark Mode</b><span>Professional dual theme</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Evaluation Form -->
+        <section class="section" id="evaluation">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">01 · Evaluation</div>
+                <h2>Student Details & Subjects</h2>
+                <div class="sub">Standard 10-point UGC grading scale</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="toolbar">
+                <div class="segment">
+                  <button class="chip" onclick="templateEngineering()">Engineering (5)</button>
+                  <button class="chip" onclick="templateHighSchool()">High School (6)</button>
+                  <button class="chip" onclick="loadSample()">Sample Pass</button>
+                  <button class="chip" onclick="clearAll()">Clear All</button>
                 </div>
-                <div class="summary-card">
-                  <small>WEIGHTED SGPA</small>
-                  <strong id="sgpa">0.0</strong>
-                </div>
-                <div class="summary-card">
-                  <small>FINAL GRADE</small>
-                  <strong id="finalGrade">—</strong>
-                </div>
-                <div class="summary-card">
-                  <small>SUBJECTS PASSED</small>
-                  <strong id="passedCount">0 / 0</strong>
-                </div>
+                <span class="sub">Academic Year 2025–2026</span>
               </div>
 
+              <div class="form-grid">
+                <div class="field"><label>STUDENT FULL NAME *</label><input id="studentName" placeholder="Enter full name"></div>
+                <div class="field"><label>ROLL / REGISTRATION NO. *</label><input id="regNo" placeholder="Registration number"></div>
+                <div class="field"><label>COURSE</label><input id="course" value="MCA"></div>
+                <div class="field"><label>SEMESTER / YEAR</label>
+                  <select id="semester"><option>Semester 1</option><option>Semester 2</option><option>Semester 3</option><option selected>Semester 4</option><option>Year 1</option><option>Year 2</option></select>
+                </div>
+                <div class="field"><label>ACADEMIC YEAR</label><input id="academicYear" value="2025–2026"></div>
+                <div class="field"><label>INSTITUTION NAME</label><input id="institution" value="KLE Society's P. C. Jabin Science College"></div>
+              </div>
+
+              <div class="subject-header">
+                <div><b>Subject Marks</b><div class="sub">Marks must be between 0 and maximum marks.</div></div>
+                <button class="btn" onclick="addSubject()">＋ Add Subject</button>
+              </div>
               <div class="table-wrap">
                 <table>
-                  <thead>
-                    <tr>
-                      <th>Subject</th>
-                      <th>Code</th>
-                      <th>Marks</th>
-                      <th>Percent</th>
-                      <th>Credits</th>
-                      <th>Grade</th>
-                      <th>Point</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="resultRows"></tbody>
+                  <thead><tr><th>#</th><th>Subject Name</th><th>Code</th><th>Marks</th><th>Max Marks</th><th>Credits</th><th>Action</th></tr></thead>
+                  <tbody id="subjectBody"></tbody>
                 </table>
               </div>
-
-              <div class="performance" id="performanceText">Performance summary appears here.</div>
+              <div class="note">ⓘ Minimum 40% required in every subject to pass.</div>
+              <div class="actions">
+                <button class="btn" onclick="addSubject()">＋ Add Subject</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn warning" onclick="resetMarks()">↻ Reset Marks</button>
+                  <button class="btn info" onclick="validateForm()">✓ Validate Data</button>
+                  <button class="btn primary glow" onclick="calculateResult()">⚡ Calculate Results →</button>
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          <p style="margin-top:22px;text-align:right;color:var(--muted);font-size:11px">Generated by EduGrade · Academic Year <span id="reportYear"></span></p>
-        </div>
-      </section>
-
-      <!-- Section 03: Saved Student Records -->
-      <section class="section" id="records">
-        <div class="section-head">
-          <div class="section-title">
-            <span class="number">03</span>
-            <div>
-              <h2>Saved Student Records</h2>
-              <p>Stored securely in this browser</p>
+        <!-- Result Report -->
+        <section class="section" id="resultSection" style="display:none">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">02 · Result</div>
+                <h2>Evaluation Report</h2>
+                <div class="sub">Calculated academic performance summary</div>
+              </div>
+            </div>
+            <div class="result-layout">
+              <div class="result-hero">
+                <div style="display:flex;justify-content:space-between;gap:20px;align-items:start">
+                  <div>
+                    <div style="font-size:12px;opacity:.75">OVERALL GRADE</div>
+                    <div class="grade-big" id="resultGrade">A</div>
+                    <div id="resultStatus" style="font-weight:800;margin-top:8px">PASS</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:12px;opacity:.75">STUDENT</div>
+                    <b id="resultName">—</b>
+                    <div id="resultReg" style="font-size:12px;opacity:.75;margin-top:4px">—</div>
+                  </div>
+                </div>
+                <div class="result-grid">
+                  <div class="mini"><span>PERCENTAGE</span><b id="resultPct">0%</b></div>
+                  <div class="mini"><span>WEIGHTED SGPA</span><b id="resultSgpa">0.00</b></div>
+                  <div class="mini"><span>TOTAL</span><b id="resultTotal">0/0</b></div>
+                  <div class="mini"><span>CREDITS</span><b id="resultCredits">0</b></div>
+                </div>
+              </div>
+              <div class="progress-block">
+                <div class="progress-row">
+                  <div style="display:flex;justify-content:space-between"><b>Overall Score</b><span id="pPct">0%</span></div>
+                  <div class="pbar"><div class="pfill" id="pfill1"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div style="display:flex;justify-content:space-between"><b>SGPA Performance</b><span id="pSgpa">0/10</span></div>
+                  <div class="pbar"><div class="pfill" id="pfill2"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div style="display:flex;justify-content:space-between"><b>Subjects Passed</b><span id="pPass">0/0</span></div>
+                  <div class="pbar"><div class="pfill" id="pfill3"></div></div>
+                </div>
+                <div class="grade-scale" id="gradeScale"></div>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn success" onclick="saveResult()">✓ Save Student Result</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn info" onclick="openTranscript()">▤ Preview Transcript</button>
+                <button class="btn" onclick="copySummary()">⧉ Copy Summary</button>
+                <button class="btn primary glow" onclick="printTranscript()">🖨 Print Transcript</button>
+              </div>
             </div>
           </div>
-          <div class="records-tools">
-            <input id="search" placeholder="Search name or roll..." oninput="renderRecords()">
-            <select id="filter" onchange="renderRecords()">
-              <option value="all">All Results</option>
-              <option value="PASS">Passed</option>
-              <option value="FAIL">Failed</option>
-            </select>
-          </div>
-        </div>
+        </section>
 
-        <div class="content">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Registration No.</th>
-                  <th>Course</th>
-                  <th>Semester</th>
-                  <th>Percentage</th>
-                  <th>SGPA</th>
-                  <th>Grade</th>
-                  <th>Result</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="recordsRows"></tbody>
-            </table>
+        <!-- Analytics Section -->
+        <section class="section" id="analytics">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">03 · Analytics</div>
+                <h2>Performance Analytics</h2>
+                <div class="sub">A visual summary generated from saved student results</div>
+              </div>
+              <div class="command-row">
+                <button class="btn" onclick="refreshAnalytics()">↻ Refresh</button>
+                <button class="btn info" onclick="exportJSON()">⇩ Backup JSON</button>
+                <button class="btn" onclick="document.getElementById('jsonImport').click()">⇧ Restore JSON</button>
+                <input id="jsonImport" type="file" accept=".json,application/json" hidden onchange="importJSON(event)">
+              </div>
+            </div>
+            <div class="analytics-grid">
+              <div class="chart-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div><b>Grade Distribution</b><div class="sub">Number of students by final grade</div></div>
+                  <span class="client-chip" id="analyticsTotal">0 records</span>
+                </div>
+                <div class="bar-chart" id="gradeChart"></div>
+              </div>
+              <div class="activity-card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><b>Pass Health</b><div class="sub">Overall outcome ratio</div></div>
+                  <span class="badge pass">LIVE</span>
+                </div>
+                <div class="donut" id="passDonut">
+                  <div class="donut-center">
+                    <div>
+                      <b id="donutPct">0%</b>
+                      <span>Pass rate</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="activity-list" id="recentActivity"></div>
+              </div>
+            </div>
           </div>
-          <div class="empty" id="empty">No saved records yet. Calculate and save a student result.</div>
+        </section>
+
+        <!-- Student Records Section -->
+        <section class="section" id="records">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">04 · Records</div>
+                <h2>Saved Student Records</h2>
+                <div class="sub">Stored securely in this browser using LocalStorage</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="search-row">
+                <input id="recordSearch" placeholder="Search student, registration no. or course..." oninput="renderRecords()">
+                <select id="recordFilter" onchange="renderRecords()">
+                  <option value="all">All Results</option>
+                  <option value="PASS">Passed</option>
+                  <option value="FAIL">Failed</option>
+                </select>
+                <button class="btn info" onclick="exportCSV()">⇩ Export CSV</button>
+                <button class="btn" onclick="exportJSON()">⇩ Backup JSON</button>
+                <button class="btn danger" onclick="clearRecords()">⌫ Clear Records</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Student</th><th>Registration No.</th><th>Course</th><th>Semester</th><th>Percentage</th><th>SGPA</th><th>Grade</th><th>Result</th><th>Action</th></tr></thead>
+                  <tbody id="recordsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DevOps Architecture Section -->
+        <section class="section" id="devops">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <div class="kicker">05 · DevOps Architecture</div>
+                <h2>Built for CI/CD Deployment</h2>
+                <div class="sub">A realistic project section for your MCA DevOps demonstration</div>
+              </div>
+            </div>
+            <div class="devops-grid">
+              <div class="dev-card"><div class="num">01 · SOURCE</div><h3>Git + GitHub</h3><p>Version-controlled source code with main branch workflow and repository-based collaboration.</p></div>
+              <div class="dev-card"><div class="num">02 · AUTOMATION</div><h3>GitHub Actions</h3><p>Automated build and deployment workflow triggered whenever updated code is pushed.</p></div>
+              <div class="dev-card"><div class="num">03 · CONTAINER</div><h3>Docker + Nginx</h3><p>Static application containerized with Docker and served using a lightweight web server.</p></div>
+              <div class="dev-card"><div class="num">04 · CLOUD</div><h3>AWS EC2</h3><p>Docker container deployed to a cloud virtual machine and exposed through a public web endpoint.</p></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="container footer-line">
+          <div><b>EduGrade DevOps</b> · Smart Academic Evaluation Platform</div>
+          <div>Client Build v3.0 · CI/CD · Docker · Nginx · AWS EC2</div>
         </div>
-      </section>
+      </footer>
     </div>
-  </main>
+  </div>
 
-  <!-- Footer -->
-  <footer>
-    <span class="footer-brand">EduGrade DevOps</span> · Automated CI/CD · Docker Containerized · AWS Ready<br>
-    Built as an MCA DevOps Mini Project
-  </footer>
+  <!-- Project Info Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="projectDrawer">
+    <div class="drawer-head">
+      <div>
+        <div class="kicker">PROJECT INFO</div>
+        <h3 style="margin:5px 0 0;font:800 20px Manrope">EduGrade DevOps</h3>
+      </div>
+      <button class="icon-btn" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-section">
+      <h4>Client Demo Build</h4>
+      <p>Version 3.0.0 with responsive UI, browser storage, analytics, transcript printing, CSV/JSON export and DevOps presentation modules.</p>
+    </div>
+    <div class="drawer-section">
+      <h4>Deployment Stack</h4>
+      <p>GitHub → GitHub Actions → Docker → Nginx → AWS EC2</p>
+    </div>
+    <div class="drawer-section">
+      <h4>Keyboard Tip</h4>
+      <p>Press <span class="kbd">N</span> to start a new evaluation and <span class="kbd">T</span> to toggle the theme when you are not typing inside a field.</p>
+    </div>
+    <button class="btn primary glow" style="width:100%" onclick="newEvaluation();closeDrawer()">＋ Start Evaluation</button>
+  </aside>
 
+  <!-- Floating Action Button -->
+  <button class="floating-new" onclick="newEvaluation()" title="New Evaluation">＋</button>
+
+  <!-- Toast Notification -->
   <div class="toast" id="toast">Saved successfully</div>
+
+  <!-- Academic Transcript Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-card" id="transcript">
+      <div class="transcript-head">
+        <div style="font-size:12px;letter-spacing:.12em;color:#667085">ACADEMIC TRANSCRIPT</div>
+        <h2 id="tInstitution">Institution</h2>
+        <div id="tYear" style="color:#667085;margin-top:4px">Academic Year</div>
+      </div>
+      <div id="tStudent" style="margin-bottom:18px"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Subject</th><th>Code</th><th>Marks</th><th>Grade</th><th>Point</th><th>Credits</th></tr></thead>
+          <tbody id="tSubjects"></tbody>
+        </table>
+      </div>
+      <div id="tSummary" style="margin-top:20px"></div>
+      <div class="actions no-print">
+        <button class="btn" onclick="closeTranscript()">Close</button>
+        <button class="btn primary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
