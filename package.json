@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "demo": "node run-devops-lab.js",
+    "lab": "node run-devops-lab.js",
     "test": "jest --runInBand --detectOpenHandles",
     "test:coverage": "jest --coverage",
     "lint": "node -c server.js src/*.js tests/*.js"
