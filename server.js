@@ -17,12 +17,13 @@ const RELEASE_NAME = process.env.RELEASE_NAME || 'Genesis-Release';
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const START_TIME = Date.now();
 
-// Simple request metrics tracker
+// Simple request metrics tracker & log buffer
 const metrics = {
   totalRequests: 0,
   endpointHits: {},
   statusCodes: {},
   lastErrors: [],
+  recentLogs: [],
 };
 
 // Middlewares
@@ -41,18 +42,30 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     metrics.statusCodes[res.statusCode] = (metrics.statusCodes[res.statusCode] || 0) + 1;
 
-    logger.info('HTTP Request Handled', {
+    const logMeta = {
+      timestamp: new Date().toISOString(),
       method: req.method,
       path: req.path,
       statusCode: res.statusCode,
       durationMs: duration,
-      ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('user-agent'),
+      ip: req.ip || req.connection.remoteAddress || '127.0.0.1',
+    };
+
+    logger.info('HTTP Request Handled', logMeta);
+
+    metrics.recentLogs.unshift({
+      id: Date.now() + Math.random(),
+      time: new Date().toLocaleTimeString(),
+      level: res.statusCode >= 400 ? 'WARN' : 'INFO',
+      message: `${req.method} ${req.path} -> ${res.statusCode} (${duration}ms)`,
+      details: logMeta,
     });
+    if (metrics.recentLogs.length > 50) metrics.recentLogs.pop();
   });
 
   next();
 });
+
 
 // Serve static assets from public/
 app.use(express.static(path.join(__dirname, 'public')));
@@ -177,6 +190,51 @@ app.get('/metrics', (req, res) => {
   });
 });
 
+/**
+ * DevOps Live Logs API
+ */
+app.get('/api/devops/logs', (req, res) => {
+  res.json({
+    success: true,
+    logs: metrics.recentLogs,
+  });
+});
+
+/**
+ * DevOps Lab Status API (All 12 Steps Metadata)
+ */
+app.get('/api/devops/status', (req, res) => {
+  res.json({
+    success: true,
+    status: {
+      app: 'EduGrade DevOps',
+      version: APP_VERSION,
+      releaseName: RELEASE_NAME,
+      environment: NODE_ENV,
+      uptimeSeconds: Math.floor((Date.now() - START_TIME) / 1000),
+      port: PORT,
+      host: os.hostname(),
+      platform: os.platform(),
+      git: {
+        branch: 'main',
+        latestTag: 'v1.1.0',
+        activeCommit: 'a71403d',
+        remote: 'https://github.com/Afshaan-shaik/devops-edugrade-practical.git',
+      },
+      container: {
+        name: 'edugrade-web-container',
+        image: 'edugrade:1.0.0',
+        base: 'node:20-alpine',
+        user: 'node',
+        healthStatus: 'HEALTHY',
+        ports: '80:8080 (Production) / 8080:8080 (Local)',
+      },
+      stepsCompleted: 12,
+      totalSteps: 12,
+    },
+  });
+});
+
 // Fallback to index.html for SPA routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -185,14 +243,28 @@ app.get('*', (req, res) => {
 // Only start the server if file is executed directly (allows test imports)
 let serverInstance;
 if (require.main === module) {
-  serverInstance = app.listen(PORT, () => {
-    logger.info(`EduGrade Server started successfully on port ${PORT}`, {
-      port: PORT,
-      version: APP_VERSION,
-      env: NODE_ENV,
-      url: `http://localhost:${PORT}`,
+  function startServer(portToUse) {
+    serverInstance = app.listen(portToUse, () => {
+      logger.info(`EduGrade Server started successfully on port ${portToUse}`, {
+        port: portToUse,
+        version: APP_VERSION,
+        env: NODE_ENV,
+        url: `http://localhost:${portToUse}`,
+      });
     });
-  });
+
+    serverInstance.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        const nextPort = Number(portToUse) + 1;
+        logger.warn(`Port ${portToUse} is already in use. Retrying on port ${nextPort}...`);
+        startServer(nextPort);
+      } else {
+        logger.error('Server startup error', { error: err.message });
+      }
+    });
+  }
+
+  startServer(PORT);
 
   // Graceful shutdown handling
   const shutdown = (signal) => {
@@ -210,5 +282,6 @@ if (require.main === module) {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
+
 
 module.exports = app;

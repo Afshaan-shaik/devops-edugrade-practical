@@ -344,24 +344,117 @@
           </div>
         </section>
 
-        <!-- DevOps Architecture Section -->
+        <!-- DevOps Interactive Command Center (All 12 Practical Steps) -->
         <section class="section" id="devops">
           <div class="container">
             <div class="section-head">
               <div>
-                <div class="kicker">05 · DevOps Architecture</div>
-                <h2>Built for CI/CD Deployment</h2>
-                <div class="sub">A realistic project section for your MCA DevOps demonstration</div>
+                <div class="kicker">05 · DevOps Lab Command Center</div>
+                <h2>Containerized CI/CD & Cloud Pipeline (12/12 Steps)</h2>
+                <div class="sub">Interactive practical demonstration, live container telemetry, real-time logs & rollback controls</div>
+              </div>
+              <div class="command-row">
+                <button class="btn info" onclick="runAllDevOpsDiagnostic()">⚡ Run Full Diagnostic</button>
               </div>
             </div>
-            <div class="devops-grid">
-              <div class="dev-card"><div class="num">01 · SOURCE</div><h3>Git + GitHub</h3><p>Version-controlled source code with main branch workflow and repository-based collaboration.</p></div>
-              <div class="dev-card"><div class="num">02 · AUTOMATION</div><h3>GitHub Actions</h3><p>Automated build and deployment workflow triggered whenever updated code is pushed.</p></div>
-              <div class="dev-card"><div class="num">03 · CONTAINER</div><h3>Docker + Nginx</h3><p>Static application containerized with Docker and served using a lightweight web server.</p></div>
-              <div class="dev-card"><div class="num">04 · CLOUD</div><h3>AWS EC2</h3><p>Docker container deployed to a cloud virtual machine and exposed through a public web endpoint.</p></div>
+
+            <!-- 12-Step Navigator Chips -->
+            <div class="step-chips" id="stepChips">
+              <button class="step-chip active" onclick="selectDevOpsStep(1)">1. App Dev</button>
+              <button class="step-chip" onclick="selectDevOpsStep(2)">2. Git Push</button>
+              <button class="step-chip" onclick="selectDevOpsStep(3)">3. Branches</button>
+              <button class="step-chip" onclick="selectDevOpsStep(4)">4. Dockerfile</button>
+              <button class="step-chip" onclick="selectDevOpsStep(5)">5. Image Build</button>
+              <button class="step-chip" onclick="selectDevOpsStep(6)">6. GitHub Actions</button>
+              <button class="step-chip" onclick="selectDevOpsStep(7)">7. Automated Tests</button>
+              <button class="step-chip" onclick="selectDevOpsStep(8)">8. AWS Deploy</button>
+              <button class="step-chip" onclick="selectDevOpsStep(9)">9. Secrets & Env</button>
+              <button class="step-chip" onclick="selectDevOpsStep(10)">10. Monitor Logs</button>
+              <button class="step-chip" onclick="selectDevOpsStep(11)">11. New Release</button>
+              <button class="step-chip" onclick="selectDevOpsStep(12)">12. Rollback Demo</button>
+            </div>
+
+            <!-- Lab Layout: Terminal & Inspector -->
+            <div class="devops-lab">
+              <!-- Left: Interactive Terminal Window -->
+              <div class="terminal-box">
+                <div class="terminal-bar">
+                  <div class="terminal-dots">
+                    <span class="t-dot t-red"></span>
+                    <span class="t-dot t-yellow"></span>
+                    <span class="t-dot t-green"></span>
+                  </div>
+                  <div class="terminal-title" id="terminalTitle">Step 1: Application Development</div>
+                  <button class="btn icon-btn" style="padding:4px 8px;font-size:11px" onclick="copyStepCommand()">Copy Command</button>
+                </div>
+                <div class="terminal-body" id="terminalBody">
+                  <div><span class="t-prompt">devops@cloud:~$ </span><span class="t-cmd" id="terminalCommand">node server.js</span></div>
+                  <div class="t-out" id="terminalOutput">
+[INFO] EduGrade Server started successfully on port 8080
+[INFO] Environment: production | Service: edugrade-web-app
+[INFO] Endpoints active: /health, /api/calculate, /api/version, /metrics
+✓ Local server operational at http://localhost:8080
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Container Inspector & Live Rollback Simulator -->
+              <div class="inspector-grid">
+                <!-- Live Rollback Simulator -->
+                <div class="rollback-simulator">
+                  <div class="rollback-status">
+                    <div>
+                      <b style="font-size:14px">Release & Rollback Engine</b>
+                      <div style="font-size:11px;opacity:.8;margin-top:2px">Step 11 & 12 Demonstration</div>
+                    </div>
+                    <span class="rb-pill" id="rbCurrentBadge">v1.0.0 (Stable)</span>
+                  </div>
+                  <p style="font-size:12px;opacity:.9;line-height:1.5;margin-bottom:14px" id="rbDescription">
+                    Currently running baseline release v1.0.0. Use the buttons below to simulate a deployment upgrade and an automated rollback.
+                  </p>
+                  <div class="rb-controls">
+                    <button class="rb-btn rb-deploy" onclick="simulateReleaseV11()">⚡ Deploy Release v1.1.0</button>
+                    <button class="rb-btn rb-rollback" onclick="simulateRollbackV10()">↺ Rollback to v1.0.0</button>
+                  </div>
+                </div>
+
+                <!-- Container Telemetry Card -->
+                <div class="inspector-card">
+                  <div class="inspector-head">
+                    <b>Docker Container Telemetry</b>
+                    <span class="badge pass" id="liveContainerHealth">● HEALTHY</span>
+                  </div>
+                  <div class="inspector-item"><span>Container Name</span><b style="font-family:monospace">edugrade-web-container</b></div>
+                  <div class="inspector-item"><span>Image & Base</span><b id="liveContainerImage">edugrade:1.0.0 (Alpine)</b></div>
+                  <div class="inspector-item"><span>Security Spec</span><b>USER node (Non-root)</b></div>
+                  <div class="inspector-item"><span>Port Forwarding</span><b>Host 80 ➔ 8080 (TCP)</b></div>
+                  <div class="inspector-item"><span>Cloud Host</span><b>AWS EC2 (Amazon Linux 2023)</b></div>
+                  <div class="inspector-item"><span>CI/CD Pipeline</span><b>GitHub Actions (Passed)</b></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Logs Monitoring Console -->
+            <div style="margin-top:20px" class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+                <div>
+                  <b style="font-size:15px">Step 10: Live Telemetry & Log Monitoring Console</b>
+                  <div class="sub">Streaming real-time HTTP requests, response latency, and JSON structured logs</div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn" style="padding:6px 10px;font-size:11px" onclick="triggerTestRequest()">▶ Send Test Request</button>
+                  <button class="btn info" style="padding:6px 10px;font-size:11px" onclick="pollDevOpsLogs()">↻ Refresh Logs</button>
+                </div>
+              </div>
+              <div class="terminal-box" style="box-shadow:none;border-color:var(--line)">
+                <div class="terminal-body" id="liveLogsTerminal" style="max-height:180px;font-size:11px">
+                  <span style="color:#64748b">Loading real-time logs from backend service...</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
       </main>
 
       <footer>
